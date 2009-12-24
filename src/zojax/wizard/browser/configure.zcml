@@ -1,0 +1,64 @@
+<configure
+   xmlns="http://namespaces.zope.org/zope"
+   xmlns:zojax="http://namespaces.zope.org/zojax"
+   i18n_domain="zojax.wizard">
+
+  <!-- wizard -->
+  <zojax:layout
+     layout="."
+     template="wizardlayout.pt"
+     for="..interfaces.IWizard" />
+
+  <adapter factory=".breadcrumb.WizardBreadcrumb" />
+
+  <class class="..wizard.Wizard">
+    <implements interface="zojax.layoutform.interfaces.IFormWrapper" />
+  </class>
+
+  <zojax:layout
+     layout="."
+     template="wizardtabslayout.pt"
+     class=".wizardlayout.WizardWithTabsLayout"
+     for="..interfaces.IWizardWithTabs" />
+
+  <class class="..wizard.WizardWithTabs">
+    <implements interface="zojax.layoutform.interfaces.IFormWrapper" />
+  </class>
+
+  <!-- wizard step -->
+  <zojax:pagelet
+     type="form"
+     template="stepform.pt"
+     for="..interfaces.IWizardStepForm" />
+
+  <!-- buttons -->
+  <adapter
+     provides="z3c.form.interfaces.IButtonAction"
+     factory=".buttons.BackButtonAction" />
+
+  <class class=".buttons.BackButtonAction">
+    <allow attributes="render" />
+  </class>
+
+  <adapter
+     provides="z3c.form.interfaces.IButtonAction"
+     factory=".buttons.ForwardButtonAction" />
+
+  <class class=".buttons.ForwardButtonAction">
+    <allow attributes="render" />
+  </class>
+
+  <!-- styles -->
+  <zojax:resourceinclude
+     name="zojax-wizard.css" library="zojax"
+     type="stylesheet" file="styles.css" filetype="zrt" />
+
+  <!--  ecmascripts -->
+  <zojax:resourceinclude
+     name="zojax.wizard.tabs"
+     type="javascript"
+     library="zojax"
+     require="jquery"
+     file="tabs.js" />
+
+</configure>
