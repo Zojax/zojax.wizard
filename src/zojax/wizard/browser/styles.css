@@ -1,0 +1,144 @@
+/* zrt-cssregistry: */
+
+@media all {
+  
+  .z-wizard .z-form-controls {
+    padding-bottom: 2em;
+  }
+
+  .z-wizard-viewspace {
+    padding: 1em 1em 0 1em;
+    margin-top: 1.2em;
+    background: contentBackgroundColor;
+    border: borderWidth borderStyle globalExtraBorderColor;
+  }
+
+  .z-wizard-viewspace h1.z-form-label { 
+    font-size: 110% !important;
+  }
+
+  .z-wizard-viewspace h2 {
+    font-weight: bold;
+  }
+
+  .z-wizard-viewspace .z-content-preview { 
+    font-size: 110%;
+    border: 0;
+    margin: 0;
+    padding: 0em 0em 1em 0em;
+    background: none;
+  }
+
+  ul.z-wizard-wizardsteps {
+    display: block;
+    position: relative;
+    margin: 0 0 -2.15em 0;
+    list-style-type: none;
+    text-align: center;
+  }
+
+  ul.z-wizard-wizardsteps li {
+    display: inline;
+    margin: 0 -2px;
+    padding: 0;
+    background: contentBackgroundColor;
+  }
+  
+  ul.z-wizard-wizardsteps li a {
+    display: inline-block;
+    background: contentBackgroundColor;
+  }
+
+  ul.z-wizard-wizardsteps li a {
+    color: globalExtraBorderColor;
+    border-top: borderWidth borderStyle globalBorderColor;
+    border-bottom: borderWidth borderStyle globalBorderColor;
+    border-left: borderWidth dotted globalBorderColor;
+    border-right: borderWidth dotted globalBorderColor;
+    margin: 0;
+    padding: 0.125em 0.75em;
+    text-decoration: none;
+  }
+
+  ul.z-wizard-wizardsteps li.notCompleted a {
+    border-top: borderWidth borderStyle notifyBorderColor;
+    border-bottom: borderWidth borderStyle notifyBorderColor;
+    border-left: borderWidth dotted notifyBorderColor;
+    border-right: borderWidth dotted notifyBorderColor;
+  }
+  
+  ul.z-wizard-wizardsteps .z-wizard-selected a {
+    background-color: globalBackgroundColor;
+  }
+
+  ul.z-wizard-wizardsteps li a:hover {
+    background-color: globalBackgroundColor;
+  }
+
+  .z-wizard-info { 
+    width: 150px;
+    padding: 0.5em;
+    margin: 0 1em 0 1em;
+    border: borderWidth borderStyle globalBorderColor;
+  }
+
+  .z-wizard-wrapper { 
+    padding-bottom: 1em;
+  }
+
+  /* location widget */
+  .z-locationwidget-item { 
+    padding-top: 0.25em;
+  }
+
+  .z-locationwidget-item span a {
+    text-decoration: none;
+    border-bottom: borderWidth dotted globalBorderColor;
+  }
+
+  /* wizard buttons */
+  .z-wizard-submitbutton,
+  .z-wizard-publishbutton { 
+    border: borderWidth borderStyle globalExtraBorderColor;
+    background: globalBackgroundColor url(zojax-layoutform-linkOpaque.gif) no-repeat;
+    background-position: 5px center;
+    cursor: pointer;
+    font-size: fontSmallSize;
+    padding: 1px 1px 1px 16px;
+    margin-right: 1em;
+  }
+
+  .z-wizard-savecontinuebutton { 
+    background: transparent url(zojax-layoutform-linkTransparent.gif) no-repeat;
+    background-position: 5px center;
+    cursor: pointer;
+    font-size: fontSmallSize;
+    padding: 1px 1px 1px 16px;
+  }
+
+  .z-wizard-savedraftbutton {
+    background: transparent url(zojax-layoutform-linkTransparent.gif) no-repeat;
+    background-position: 5px center;
+    cursor: pointer;
+    font-size: fontSmallSize;
+    padding: 1px 1px 1px 16px;
+    margin-right: 1em;
+  }
+
+  .z-wizard-previousbutton {
+    background: transparent url(zojax-layoutform-linkTransparent.gif) no-repeat;
+    background-position: 5px center;
+    cursor: pointer;
+    font-size: fontSmallSize;
+    padding: 1px 1px 1px 16px;
+  }
+
+  .z-wizard-forwardbutton {
+    background: transparent url(zojax-layoutform-linkTransparent.gif) no-repeat;
+    background-position: 5px center;
+    cursor: pointer;
+    font-size: fontSmallSize;
+    padding: 1px 1px 1px 16px;
+  }
+
+}

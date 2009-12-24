@@ -1,0 +1,30 @@
+<configure 
+   xmlns="http://namespaces.zope.org/zope"
+   xmlns:i18n="http://namespaces.zope.org/i18n"
+   xmlns:zojax="http://namespaces.zope.org/zojax"
+   i18n_domain="zojax.wizard">
+
+  <zojax:pageletType
+     name="wizard.step"
+     interface=".interfaces.IWizardStep" />
+
+  <!-- wizard buttons -->
+  <adapter factory=".button.WizardButtonActions" />
+  <class class=".button.WizardButtonActions">
+    <allow interface="z3c.form.interfaces.IActions" />
+  </class>
+
+  <adapter factory=".button.WizardButtonActionHandler" />
+
+  <!-- wizard error -->
+  <adapter
+     name="wizardError"
+     factory=".error.WizardError" />
+
+  <!-- browser views -->
+  <include package=".browser" />
+
+  <!-- translations -->
+  <i18n:registerTranslations directory="locales"/>
+
+</configure>

@@ -1,0 +1,19 @@
+<div class="z-form z-wizard">
+  <form action="." method="post" enctype="multipart/form-data" 
+	tal:attributes="method layoutcontext/method;
+			enctype layoutcontext/enctype;
+			acceptCharset layoutcontext/acceptCharset;
+			accept layoutcontext/accept;
+			action layoutcontext/action;
+			name layoutcontext/name;
+			id layoutcontext/id">
+    <h1 class="z-form-label">
+      <tal:block content="layoutcontext/label" /></h1>
+    <div class="z-form-description"
+	 tal:content="layoutcontext/description"></div>
+
+    <tal:block tal:content="structure view/render" />
+
+    <tal:block tal:content="structure layoutcontext/@@pagelet/form.buttons" />
+  </form>
+</div>

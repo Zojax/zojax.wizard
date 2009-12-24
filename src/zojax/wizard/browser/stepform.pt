@@ -1,0 +1,29 @@
+<div class="z-wizard-step">
+  <h2 class="z-form-label"
+      tal:condition="context/label" tal:content="context/label">Do something</h2>
+  <div class="z-form-description"
+       tal:condition="context/description" tal:content="context/description"></div>
+  
+  <div class="z-form-fieldset" tal:condition="context/widgets">
+    <tal:block tal:repeat="context context/widgets/values"
+               tal:content="structure pagelet:form.widget" />
+  </div>
+
+  <tal:block tal:condition="context/groups|nothing"
+	     tal:repeat="context context/groups"
+	     tal:content="structure pagelet:form" />
+
+  <tal:block tal:condition="context/subforms|nothing"
+	     tal:repeat="context context/subforms"
+	     tal:content="structure pagelet:form" />
+
+  <tal:block tal:condition="context/forms|nothing"
+	     tal:repeat="context context/forms"
+	     tal:content="structure pagelet:form" />
+  
+  <tal:block tal:condition="context/views|nothing"
+	     tal:repeat="context context/views"
+	     tal:content="structure context/render" />
+  
+  <tal:block tal:content="structure pagelet:form.buttons" />
+</div>

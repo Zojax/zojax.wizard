@@ -1,0 +1,36 @@
+<div class="z-wizard">
+  <h1 class="z-content-title" tal:content="layoutcontext/title"></h1>
+  <div class="z-content-description" tal:content="layoutcontext/description"></div>
+  <ul class="z-wizard-wizardsteps">
+    <li tal:repeat="step layout/getSteps"
+        tal:attributes="class python:step['current'] and layout.currentClass or ''">
+      <a tal:attributes="href step/url">
+        <tal:block tal:content="structure step/icon" />
+        <tal:block tal:content="step/title" />
+      </a>
+    </li>
+  </ul>
+  <form action="." method="post" enctype="multipart/form-data" class="z-form"
+        tal:attributes="method layoutcontext/method;
+                        enctype layoutcontext/enctype;
+                        acceptCharset layoutcontext/acceptCharset;
+                        accept layoutcontext/accept;
+                        action layoutcontext/action;
+                        name layoutcontext/name;
+                        id layoutcontext/id">
+    <div class="z-wizard-viewspace">
+      <tal:block tal:content="structure view/render" />
+      <tal:block tal:condition="layoutcontext/widgets">
+	<hr />
+	<div class="z-form-fieldset">
+	  <tal:block tal:repeat="context layoutcontext/widgets/values"
+		     tal:content="structure pagelet:form.widget" />
+	</div>
+      </tal:block>
+    </div>
+
+    <tal:block tal:content="structure layoutcontext/@@pagelet/form.buttons" />
+  </form>
+</div>
+
+<script type="text/javascript" tal:content="structure layout/subscribeScript"></script>

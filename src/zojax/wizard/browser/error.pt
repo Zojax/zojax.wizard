@@ -1,0 +1,10 @@
+<div class="statusWarningMessage">
+  Please complete following steps:
+  <br />
+  <ul>
+    <li tal:repeat="step view/steps">
+      <a tal:content="structure step/title"
+	 tal:attributes="href string:${step/@@absolute_url}/" />
+    </li>
+  </ul>
+</div>

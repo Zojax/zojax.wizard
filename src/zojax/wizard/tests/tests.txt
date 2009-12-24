@@ -1,0 +1,412 @@
+======
+Wizard
+======
+
+  >>> from zope import interface, component, schema
+  >>> from zope.app.testing.functional import getRootFolder
+  >>> from zope.testbrowser.testing import Browser
+  >>> from zojax.layout.zcml import _handle_allowed_attributes
+  >>> from zope.security.checker import Checker, CheckerPublic, defineChecker
+  >>> from zope.app.security.protectclass import protectName, protectSetAttribute
+
+  >>> from zojax.wizard.tests.tests import Person, IPerson, IJob
+
+  >>> root = getRootFolder()
+  >>> sm = component.getSiteManager()
+
+  >>> root['person'] = Person()
+  >>> person = root['person']
+
+Define wizard
+-------------
+
+  >>> from zojax.layoutform import button, Fields
+  >>> from zojax.layoutform.interfaces import ISaveAction, ICancelAction
+  >>> from zojax.wizard import Wizard, WizardWithTabs, WizardStepForm
+  >>> from zojax.wizard.interfaces import IWizard, IWizardButton
+  >>> from zojax.wizard.interfaces import IWizardStep, ISaveable, IPublisherPlugin
+  >>> from zojax.wizard.interfaces import IPreviousAction, IForwardAction, IFinishAction
+  
+  >>> class IWizardButtons(interface.Interface):
+  ...     previous = button.Button(
+  ...         title = u'Previous',
+  ...         condition = lambda form: not form.isFirstStep())
+  ...     interface.alsoProvides(previous, IPreviousAction)
+  ...     
+  ...     save = button.Button(
+  ...         title = u'Save & Next',
+  ...         condition = lambda form: not form.isLastStep() \
+  ...         and form.step.isSaveable())
+  ...     interface.alsoProvides(save, IForwardAction, ISaveAction)
+  ...     
+  ...     next = button.Button(
+  ...         title = u'Next',
+  ...         condition = lambda form: not form.isLastStep() \
+  ...         and not form.step.isSaveable())
+  ...     interface.alsoProvides(next, IForwardAction)
+  ...     
+  ...     sv = button.Button(
+  ...         title = u'Save',
+  ...         condition = lambda form: form.step.isSaveable())
+  ...     interface.alsoProvides(sv, ISaveAction)
+  ...     
+  ...     finish = button.Button(
+  ...         title = u'Finish',
+  ...         condition = lambda form: form.isLastStep())
+  ...     interface.alsoProvides(finish, IFinishAction)
+
+
+We can use standard z3c.form method, create buttons attribute for wizard
+or we can register adapter for (content, wizard, request) to IButtons
+
+  >>> from z3c.form.interfaces import IButtons
+
+  >>> buttons = button.Buttons(IWizardButtons)
+  >>> @interface.implementer(IButtons)
+  ... @component.adapter(None,None,None)
+  ... def getButtons(content, wizard, request):
+  ...    return buttons
+
+  >>> component.provideAdapter(getButtons)
+
+or we can provide one button
+
+  >>> from zojax.wizard.button import WizardButton
+
+  >>> cancel = WizardButton(
+  ...     title=u'Cancel', provides=ICancelAction,
+  ...     condition=lambda form: IWizard.providedBy(form))
+  >>> component.provideAdapter(
+  ...     cancel, provides=IWizardButton,
+  ...     adapts=(interface.Interface, IWizard, interface.Interface),
+  ...     name='cancel')
+
+
+  >>> class EditWizard(WizardWithTabs):
+  ...     __name__ = 'index.html'
+
+  >>> defineChecker(EditWizard, Checker(
+  ...     {'browserDefault': CheckerPublic,
+  ...      'publishTraverse': CheckerPublic,}))
+
+  >>> component.provideAdapter(
+  ...     EditWizard, (Person, None), interface.Interface, name='index.html')
+
+
+Browse wizard
+-------------
+
+  >>> actor = Browser()
+  >>> actor.addHeader("Authorization", "Basic user:userpw")
+  >>> actor.handleErrors = False
+
+no steps
+
+  >>> actor.open('http://localhost/person/index.html')
+  Traceback (most recent call last):
+  ...
+  NotFound: Object: <EditWizard object at ...>, name: u''
+
+
+  >>> class PersonStep(WizardStepForm):
+  ...     interface.implements(ISaveable)
+  ...     
+  ...     fields = Fields(IPerson)
+  ...     lebal = u'Person'
+  ...     title = u'Person step'
+  ...     weight = 10
+  ...     __name__ = 'person'
+  ...     permission = 'zope.Public'
+
+  >>> required = {}
+  >>> _handle_allowed_attributes(None, IWizardStep, CheckerPublic, required)
+  >>> _handle_allowed_attributes(None, ('browserDefault', 'publishTraverse', '__call__'),
+  ...                            CheckerPublic, required)
+  >>> defineChecker(PersonStep, Checker(required))
+
+  >>> component.provideAdapter(
+  ...     PersonStep, (Person, EditWizard, None), IWizardStep, name='person')
+
+  >>> actor.open('http://localhost/person/index.html')
+  >>> print actor.contents
+  <html>
+  ...
+  <h1 class="z-content-title"></h1>
+  <div class="z-content-description"></div>
+  <ul class="z-wizard-wizardsteps">
+    <li class="z-wizard-selected">
+       <a href="http://localhost/person/index.html/person/">
+          Person step
+       </a>
+    </li>
+  </ul>
+  <form action="http://localhost/person/index.html/"
+            method="post" enctype="multipart/form-data"
+            class="z-form" name="form" id="form">
+  <div class="z-wizard-viewspace">
+    <div class="z-wizard-step">
+      <div class="z-form-fieldset">
+        <div class="z-form-field">
+          <label for="person-widgets-name" title="">Name</label>
+          <span class="z-form-fieldRequired">&nbsp;</span>
+          <div class="z-form-help"></div>
+          <div>
+            <input id="person-widgets-name"
+              name="person.widgets.name"
+              class="text-widget required textline-field"
+              value="" type="text" />
+          </div>
+        </div>
+        <div class="z-form-field">
+           <label for="person-widgets-age" title="The person's age.">Age</label>
+           <div class="z-form-help">The person's age.</div>
+           <div>
+             <input id="person-widgets-age"
+              name="person.widgets.age"
+              class="text-widget int-field" value="20"
+              type="text" />
+        </div>
+      </div>
+    </div>
+  </div>
+  ...
+  </html>
+
+buttons
+
+  >>> print actor.contents
+  <html>
+  ...
+  <div class="z-form-controls">
+     <span>
+       <hr />
+       <input id="form-buttons-sv" name="form.buttons.sv"
+           class="z-form-savebutton button-field" value="Save"
+           type="submit" />
+       <input id="form-buttons-finish" name="form.buttons.finish"
+          class="z-form-savebutton button-field" value="Finish"
+          type="submit" />
+       <input id="form-buttons-cancel" name="form.buttons.cancel"
+          class="z-form-cancelbutton wizardbutton-field"
+          value="Cancel" type="submit" />
+      </span>
+    </div>
+  ...
+  </html>
+
+  >>> actor.getControl(name="form.buttons.finish").click()
+  >>> print actor.contents
+  <html>
+  ...<div class="statusWarningMessage">
+      Please fix indicated errors.
+     </div>
+  ...
+  </html>
+
+
+Register second step
+
+  >>> class JobStep(WizardStepForm):
+  ...     interface.implements(ISaveable)
+  ...     
+  ...     fields = Fields(IJob)
+  ...     lebal = u'Job'
+  ...     title = u'Job step'
+  ...     weight = 20
+  ...     __name__ = 'job'
+  ...     permission = 'zope.Public'
+
+
+  >>> required = {}
+  >>> _handle_allowed_attributes(None, IWizardStep, CheckerPublic, required)
+  >>> _handle_allowed_attributes(None, ('browserDefault', 'publishTraverse', '__call__'),
+  ...                            CheckerPublic, required)
+  >>> defineChecker(JobStep, Checker(required))
+
+  >>> component.provideAdapter(
+  ...     JobStep, (Person, EditWizard, None), IWizardStep, name='job')
+
+  >>> actor.open('http://localhost/person/index.html')
+  >>> print actor.contents
+  <html>
+  ...
+  <div class="z-form-controls">
+    <span>
+      <hr />
+      <input id="form-buttons-save" name="form.buttons.save"
+         class="z-wizard-forwardbutton button-field"
+         value="Save &amp; Next" type="submit" />
+      <input id="form-buttons-sv" name="form.buttons.sv"
+         class="z-form-savebutton button-field" value="Save"
+         type="submit" />
+      <input id="form-buttons-cancel" name="form.buttons.cancel"
+         class="z-form-cancelbutton wizardbutton-field"
+         value="Cancel" type="submit" />
+    </span>
+  </div>
+  ...
+  </html>
+
+  >>> actor.getControl(name="form.buttons.save").click()
+  >>> actor.url
+  'http://localhost/person/index.html/'
+
+  >>> actor.getControl('Name').value = u'Nikolay Kim'
+  >>> actor.getControl(name="form.buttons.save").click()
+
+  >>> person.name
+  u'Nikolay Kim'
+
+  >>> actor.url
+  'http://localhost/person/index.html/job/'
+
+  >>> actor.getControl(name="form.buttons.previous").click()
+  >>> actor.url
+  'http://localhost/person/index.html/person/'
+
+  >>> actor.getControl(name="form.buttons.cancel").click()
+  >>> actor.url
+  'http://localhost/person/'
+
+
+  >>> actor.open('http://localhost/person/index.html/job/')
+  >>> actor.getControl(name="form.buttons.sv").click()
+  >>> actor.getControl('Title').value = u'Developer'
+  >>> actor.getControl(name="form.buttons.sv").click()
+  >>> actor.url
+  'http://localhost/person/index.html/job/'
+
+  >>> person.title
+  u'Developer'
+
+  >>> actor.getControl(name="form.buttons.finish").click()
+  >>> actor.url
+  'http://localhost/person/'
+
+
+Step publisher
+
+  >>> from zojax.layout.pagelet import BrowserPagelet
+
+  >>> class TestPage(BrowserPagelet):
+  ...     __name__ = 'test1'
+  ...     def render(self):
+  ...         return u'Test page rendered'
+
+  >>> required = {}
+  >>> _handle_allowed_attributes(None, ('browserDefault', 'publishTraverse', '__call__'),
+  ...                            CheckerPublic, required)
+  >>> defineChecker(TestPage, Checker(required))
+
+  >>> component.provideAdapter(
+  ...     TestPage, (JobStep, None), interface.Interface, name='test1')
+
+  >>> actor.open('http://localhost/person/index.html/job/test1/')
+  >>> print actor.contents
+  <html>
+  ...
+  <h1 class="z-content-title"></h1>
+  <div class="z-content-description"></div>
+  <ul class="z-wizard-wizardsteps">
+    <li class="">
+       <a href="http://localhost/person/index.html/person/">
+          Person step
+       </a>
+    </li>
+    <li class="z-wizard-selected">
+       <a href="http://localhost/person/index.html/job/">
+          Job step
+       </a>
+    </li>
+  </ul>
+  <form action="http://localhost/person/index.html/job/test1"
+        method="post" enctype="multipart/form-data"
+        class="z-form" name="form" id="form">
+    <div class="z-wizard-viewspace">
+       Test page rendered
+    </div>
+    <div class="z-form-controls">
+      <span>
+        <hr />
+        <input id="form-buttons-previous" name="form.buttons.previous"
+           class="z-wizard-previousbutton button-field"
+           value="Previous" type="submit"  />
+        <input id="form-buttons-finish" name="form.buttons.finish"
+           class="z-form-savebutton button-field" value="Finish"
+           type="submit" />
+        <input id="form-buttons-cancel" name="form.buttons.cancel"
+           class="z-form-cancelbutton wizardbutton-field"
+           value="Cancel" type="submit" />
+      </span>
+    </div>
+  </form>
+  ...
+  </html>
+
+
+  >>> from zope.location import LocationProxy
+  >>> from zope.publisher.interfaces import NotFound
+
+  >>> class PublisherPlugin(object):
+  ...     
+  ...     def __init__(self, context, request):
+  ...         self.context = context
+  ...         self.request = request
+  ...         
+  ...     def publishTraverse(self, request, name):
+  ...         if name == 'test2':
+  ...             view = component.getMultiAdapter(
+  ...                 (self.context, self.request), name='test1')
+  ...             return LocationProxy(view, self.context, 'test2')
+  ...         
+  ...         raise NotFound(self.context, name, request)
+
+  >>> component.provideSubscriptionAdapter(
+  ...     PublisherPlugin, (JobStep, None), IPublisherPlugin)
+
+  >>> actor.open('http://localhost/person/index.html/job/test2')
+  >>> print actor.contents
+  <html>
+  ...
+  <h1 class="z-content-title"></h1>
+  <div class="z-content-description"></div>
+  <ul class="z-wizard-wizardsteps">
+    <li class="">
+       <a href="http://localhost/person/index.html/person/">
+          Person step
+       </a>
+    </li>
+    <li class="z-wizard-selected">
+       <a href="http://localhost/person/index.html/job/">
+          Job step
+       </a>
+    </li>
+  </ul>
+  <form action="http://localhost/person/index.html/job/test2"
+        method="post" enctype="multipart/form-data"
+        class="z-form" name="form" id="form">
+    <div class="z-wizard-viewspace">
+        Test page rendered
+    </div>
+    <div class="z-form-controls">
+      <span>
+        <hr />
+        <input id="form-buttons-previous" name="form.buttons.previous"
+           class="z-wizard-previousbutton button-field"
+           value="Previous" type="submit" />
+        <input id="form-buttons-finish" name="form.buttons.finish"
+           class="z-form-savebutton button-field" value="Finish"
+           type="submit" />
+        <input id="form-buttons-cancel" name="form.buttons.cancel"
+           class="z-form-cancelbutton wizardbutton-field"
+           value="Cancel" type="submit" />
+      </span>
+    </div>
+  </form>
+  ...
+  </html>
+
+  >>> actor.open('http://localhost/person/index.html/job/test3')
+  Traceback (most recent call last):
+  ...
+  NotFound:...
