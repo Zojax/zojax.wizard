@@ -145,16 +145,18 @@ class WizardStepForm(WizardStep, PageletForm):
 
     def isComplete(self):
         for form in (self,) + tuple(self.groups) + tuple(self.subforms):
-            content = form.getContent()
+            if form.ignoreContext:
+                content = None
+            else:
+                content = form.getContent()
             for field in form.fields.values():
                 if not field.field.required:
                     continue
-
-                dm = getMultiAdapter((content, field.field), IDataManager)
-                value = dm.query()
-                if value is NOVALUE or value is field.field.missing_value:
-                    return False
-
+                if not form.ignoreContext:
+                    dm = getMultiAdapter((content, field.field), IDataManager)
+                    value = dm.query()
+                    if value is NOVALUE or value is field.field.missing_value:
+                        return False
         return True
 
     def applyChanges(self, data):
