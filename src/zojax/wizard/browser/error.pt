@@ -1,5 +1,7 @@
 <div class="statusWarningMessage">
+  <tal:block i18n:translate="">
   Please complete following steps:
+  </tal:block>
   <br />
   <ul>
     <li tal:repeat="step view/steps">
